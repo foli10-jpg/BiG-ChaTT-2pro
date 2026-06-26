@@ -1,136 +1,189 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const mongoose = require('mongoose');
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, {
-    cors: {
-        origin: "*", // Lejon lidhjen nga Netlify dhe çdo pajisje tjetër
-        methods: ["GET", "POST"]
+app.use(cors());
+app.use(express.json());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+});
+
+// Databaza e përkohshme vetëm për menaxhimin e dhomave real-time
+let onlineUsers = {}; 
+let waitingUsers = []; 
+
+// 💳 LIDHJA ME MONGODB ATLAS
+// Render do ta marrë këtë automatikisht nëse e shton te Environment Variables, ose mund ta zëvendësosh këtu direkt me password-in tënd.
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://florian:PASSWORD_YT_KETU@flo.rcc9bqz.mongodb.net/bigchatt?retryWrites=true&w=majority";
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("✅ Sukses: U lidhëm me databazën MongoDB!"))
+    .catch((err) => console.error("❌ Gabim gjatë lidhjes me databazën:", err));
+
+// SCHEMA E PËRDORUESIT IN MONGODB
+const UserSchema = new mongoose.Schema({
+    username: { type: String, unique: true, required: true, lowercase: true },
+    password: { type: String, required: true },
+    name: String,
+    surname: String,
+    country: String,
+    role: { type: String, default: 'user' },
+    isVip: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
+    banExpires: { type: mongoose.Schema.Types.Mixed, default: null } // Mund të jetë Date ose "permanent"
+});
+const User = mongoose.model('User', UserSchema);
+
+// 🔐 ENDPOINT PËR REGJISTRIM (SIGN-UP)
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, password, name, surname, country } = req.body;
+        const existingUser = await User.findOne({ username: username.toLowerCase() });
+        
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Ky username është i zënë!" });
+        }
+
+        const newUser = new User({
+            username, password, name, surname, country,
+            role: username.toLowerCase() === 'florian' ? 'admin' : 'user' // Ti bëhesh Admin automatikisht
+        });
+
+        await newUser.save();
+        return res.status(201).json({ success: true, user: newUser });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Gabim në server!" });
     }
 });
 
-// Lista e përdoruesve që janë online dhe të lirë për bisedë
-let onlineUsers = {}; 
+// 🔐 ENDPOINT PËR KYÇJE (SIGN-IN)
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username: username.toLowerCase() });
 
-app.get('/', (req, res) => {
-    res.send("Serveri Backend i BiG CHaTT është LIVE! 🟢");
+        if (!user || user.password !== password) {
+            return res.status(400).json({ success: false, message: "Username ose Fjalëkalimi i gabuar!" });
+        }
+
+        // Kontrollo statusin e BAN-it para se të kyçet
+        if (user.isBanned) {
+            if (user.banExpires !== 'permanent' && Date.now() > new Date(user.banExpires).getTime()) {
+                user.isBanned = false;
+                user.banExpires = null;
+                await user.save();
+            }
+        }
+
+        return res.status(200).json({ success: true, user });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Gabim në server!" });
+    }
 });
 
+// 💳 API PËR PAGESAT (VIP DHE UNBAN)
+app.post('/api/payment', async (req, res) => {
+    const { username, action } = req.body;
+    try {
+        const user = await User.findOne({ username: username.toLowerCase() });
+        if (!user) return res.status(404).json({ success: false, message: "Përdoruesi nuk u gjet!" });
+
+        if (action === "unban_payment") {
+            user.isBanned = false;
+            user.banExpires = null;
+        } else {
+            user.isVip = true;
+        }
+
+        await user.save();
+        return res.status(200).json({ success: true, user });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Gabim gjatë pagesës!" });
+    }
+});
+
+// 🌐 LOGJIKA REAL-TIME (SOCKET.IO)
 io.on('connection', (socket) => {
-    console.log(`Një përdorues u lidh: ${socket.id}`);
-
-    // 1. Kur përdoruesi hyn në aplikacion (Auth u krye me sukses)
     socket.on('user-online', (data) => {
-        socket.username = data.username;
-        socket.peerId = data.peerId;
-        socket.city = data.city;
-        socket.isVip = data.isVip;
-        socket.isSearching = false; // Nuk po kërkon dhomë ende
-
-        // Ruajmë të dhënat e socket-it
-        onlineUsers[socket.id] = socket;
-
-        // Dërgojmë numrin e saktë të përdoruesve online te të gjithë
+        onlineUsers[socket.id] = {
+            id: socket.id,
+            username: data.username,
+            peerId: data.peerId,
+            country: data.country || 'Kosovë',
+            isVip: data.isVip || false,
+            inChat: false
+        };
         io.emit('update-counter', Object.keys(onlineUsers).length);
     });
 
-    // 2. Kur përdoruesi shtyp butonin 'SKIP' (Kërkon match)
-    socket.on('request-match', () => {
-        if (!onlineUsers[socket.id]) return;
+    socket.on('request-match', (data) => {
+        let currentUser = onlineUsers[socket.id];
+        if (!currentUser) return;
 
-        // Ndërpremë ndonjë match të vjetër nëse ka qenë i lidhur
-        if (socket.currentOpponent) {
-            let oldOpponent = onlineUsers[socket.currentOpponent];
-            if (oldOpponent) {
-                oldOpponent.emit('opponent-disconnected');
-                oldOpponent.currentOpponent = null;
-                oldOpponent.isSearching = true;
-            }
-            socket.currentOpponent = null;
-        }
+        currentUser.inChat = false;
+        waitingUsers = waitingUsers.filter(id => id !== socket.id);
 
-        socket.isSearching = true;
+        const filterCountry = data ? data.filterCountry : 'all';
 
-        // Algoritmi i Matchmaking-ut Real:
-        // Kërkojmë dikë tjetër që po kërkon dhomë TANI dhe nuk është vetë ky përdorues
-        let availableOpponent = null;
-        for (let id in onlineUsers) {
-            if (id !== socket.id && onlineUsers[id].isSearching) {
-                availableOpponent = onlineUsers[id];
-                break;
-            }
-        }
+        // Matchmaking inteligjent sipas shtetit
+        let partnerId = waitingUsers.find(id => {
+            if (id === socket.id) return false;
+            let p = onlineUsers[id];
+            if (!p || p.inChat) return false;
+            if (filterCountry !== 'all' && p.country !== filterCountry) return false;
+            return true;
+        });
 
-        if (availableOpponent) {
-            // Nëse gjetëm dikë, i lidhim të dy bashkë!
-            socket.isSearching = false;
-            availableOpponent.isSearching = false;
+        if (partnerId) {
+            waitingUsers = waitingUsers.filter(id => id !== partnerId);
 
-            socket.currentOpponent = availableOpponent.id;
-            availableOpponent.currentOpponent = socket.id;
+            onlineUsers[socket.id].inChat = true;
+            onlineUsers[partnerId].inChat = true;
+            onlineUsers[socket.id].partnerId = partnerId;
+            onlineUsers[partnerId].partnerId = socket.id;
 
-            // I dërgojmë frontend-it të secilit të dhënat e tjetrit për të bërë thirrjen WebRTC
-            socket.emit('match-found', {
-                username: availableOpponent.username,
-                peerId: availableOpponent.peerId,
-                city: availableOpponent.city,
-                isVip: availableOpponent.isVip
-            });
-
-            availableOpponent.emit('match-found', {
-                username: socket.username,
-                peerId: socket.peerId,
-                city: socket.city,
-                isVip: socket.isVip
-            });
-            
-            console.log(`Match i suksesshëm: ${socket.username} <--> ${availableOpponent.username}`);
+            socket.emit('match-found', onlineUsers[partnerId]);
+            io.to(partnerId).emit('match-found', currentUser);
+        } else {
+            waitingUsers.push(socket.id);
         }
     });
 
-    // 3. Kur përdoruesi shtyp 'Stop' ose del nga faqja
-    socket.on('leave-match', () => {
-        socket.isSearching = false;
-        if (socket.currentOpponent) {
-            let opponent = onlineUsers[socket.currentOpponent];
-            if (opponent) {
-                opponent.emit('opponent-disconnected');
-                opponent.currentOpponent = null;
-            }
-            socket.currentOpponent = null;
+    // Admin Ban Real-time
+    socket.on('admin-ban-user', async (data) => {
+        const targetUsername = data.target.toLowerCase();
+        const duration = data.duration;
+
+        let expiresAt = 'permanent';
+        if (duration !== 'permanent') {
+            expiresAt = new Date(Date.now() + (parseInt(duration) * 60 * 60 * 1000));
         }
+
+        await User.findOneAndUpdate({ username: targetUsername }, { isBanned: true, banExpires: expiresAt });
+
+        Object.keys(onlineUsers).forEach(id => {
+            if (onlineUsers[id].username.toLowerCase() === targetUsername) {
+                io.to(id).emit('banned-by-admin');
+            }
+        });
     });
 
-    // 4. Kur Admini (Ti) i bën dikujt BAN nga paneli
-    socket.on('admin-ban-user', (data) => {
-        // Kërkojmë nëse përdoruesi i bllokuar është online tani dhe e nxjerrim jashtë direkt
-        for (let id in onlineUsers) {
-            if (onlineUsers[id].username === data.target) {
-                onlineUsers[id].emit('opponent-disconnected');
-                // I dërgojmë komandën që t'i shfaqet ekrani i zi i BAN-it
-                io.to(id).emit('banned-by-admin'); 
-                onlineUsers[id].disconnect();
-            }
-        }
-    });
-
-    // Kur përdoruesi mbyll faqen ose shkëputet nga interneti
     socket.on('disconnect', () => {
-        if (socket.currentOpponent) {
-            let opponent = onlineUsers[socket.currentOpponent];
-            if (opponent) {
-                opponent.emit('opponent-disconnected');
-                opponent.currentOpponent = null;
-            }
+        let user = onlineUsers[socket.id];
+        if (user && user.partnerId && onlineUsers[user.partnerId]) {
+            onlineUsers[user.partnerId].inChat = false;
+            io.to(user.partnerId).emit('opponent-disconnected');
         }
         delete onlineUsers[socket.id];
-        // Përditësojmë numëruesin për të tjerët
+        waitingUsers = waitingUsers.filter(id => id !== socket.id);
         io.emit('update-counter', Object.keys(onlineUsers).length);
-        console.log(`Një përdorues doli: ${socket.id}`);
     });
 });
 
-// Porti i cili rregullohet automatikisht nga Render
 const PORT = process.env.PORT || 10000;
-http.listen(PORT, () => {
-    console.log(`Serveri BiG CHaTT po punon në portin ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Serveri po punon në portin ${PORT}`));
