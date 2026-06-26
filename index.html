@@ -2,157 +2,137 @@
 <html lang="sq">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiG CHaTT - Connect, Chat, Meet.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BiG CHaTT - Official </title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg-dark: #070a13;
-            --panel-bg: #101626;
+            --bg-dark: #070913;
+            --panel-bg: #0d1222;
             --accent-blue: #2563eb;
             --accent-pink: #d946ef;
             --text-main: #f8fafc;
             --danger: #ef4444;
             --vip-gold: #f59e0b;
-            --input-bg: #090d1a;
+            --input-bg: #05070f;
             --border-color: #1e293b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, sans-serif; }
         body { background: var(--bg-dark); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* HEADER-I PRO */
-        .top-header { height: 70px; background: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10; }
+        /* HEADER */
+        .top-header { height: 70px; background: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10; shrink: 0; }
         .brand-section { display: flex; align-items: center; gap: 12px; }
         .brand-name { font-weight: 800; font-size: 24px; letter-spacing: 0.5px; }
         .live-counter { background: rgba(16, 185, 129, 0.12); color: #10b981; padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .live-pulse { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
-
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
         
         .header-actions { display: flex; align-items: center; gap: 12px; position: relative; }
-        .btn-vip-top { background: linear-gradient(135deg, var(--vip-gold), #b45309); color: white; padding: 8px 18px; border: none; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.2s; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+        .btn-vip-top { background: linear-gradient(135deg, var(--vip-gold), #b45309); color: white; padding: 8px 18px; border: none; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 13px; transition: 0.2s; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
         .btn-vip-top:hover { transform: translateY(-1px); filter: brightness(1.1); }
         
-        /* PROFILI DHE DROPDOWN MENU PËR SIGN OUT */
-        .user-profile-tag { background: #090d1a; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: 700; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; position: relative; display: flex; align-items: center; gap: 6px; }
-        .user-profile-tag:hover { background: #141b2d; border-color: #334155; }
-        .user-profile-tag.vip-user { color: var(--vip-gold); border-color: var(--vip-gold); background: rgba(245, 158, 11, 0.05); }
+        .user-profile-tag { background: #05070f; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: 700; border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .user-profile-tag.vip-user { color: var(--vip-gold); border-color: var(--vip-gold); }
         
-        .profile-dropdown { position: absolute; top: 45px; right: 0; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; z-index: 100; overflow: hidden; }
-        .dropdown-item { padding: 12px 16px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+        .profile-dropdown { position: absolute; top: 45px; right: 0; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 160px; display: none; z-index: 100; overflow: hidden; }
+        .dropdown-item { padding: 12px 16px; font-size: 14px; color: var(--text-main); cursor: pointer; font-weight: 600; }
         .dropdown-item:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-        /* MULTI-VIDEO GRID (E BARABARTË 50% / 50%) */
+        /* MAIN APPLICATON CONTAINER */
         .main-app-container { display: flex; flex-direction: column; flex: 1; height: calc(100vh - 70px); position: relative; }
-        .video-grid { flex: 1; display: flex; background: #020408; position: relative; }
         
-        .video-wrapper { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #0f172a; }
+        /* VIDEO GRID KRAH PËR KRAH (PERFEKT) */
+        .video-grid { flex: 1; display: flex; background: #000; position: relative; width: 100%; height: 100%; }
+        .video-wrapper { flex: 1; width: 50%; position: relative; background: #020408; overflow: hidden; border: 1px solid #0f172a; display: flex; align-items: center; justify-content: center; }
+        
         video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* 🔄 RREGULLIMI I KRYES (MIRROR EFFECT) VETËM PËR KAMERËN TËNDE */
+        #local-stream-view { transform: scaleX(-1); -webkit-transform: scaleX(-1); }
+        /* KAMERA E TJETRIT NDREQET MOS TË JETË MBAPSHT */
+        #remote-stream-view { transform: scaleX(1); -webkit-transform: scaleX(1); }
 
-        .video-label { position: absolute; bottom: 20px; left: 20px; background: rgba(10, 15, 30, 0.75); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); z-index: 6; }
+        .video-label { position: absolute; bottom: 20px; left: 20px; background: rgba(7, 9, 19, 0.85); backdrop-filter: blur(12px); padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.08); z-index: 6; }
         .video-dot { width: 8px; height: 8px; background: #64748b; border-radius: 50%; }
         .video-dot.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
 
-        /* BARA E KONTROLLIT PRO */
-        .control-bar { height: 100px; background: var(--panel-bg); display: flex; align-items: center; justify-content: center; gap: 16px; border-top: 1px solid var(--border-color); padding: 0 24px; z-index: 10; }
-        .btn { padding: 14px 32px; border: none; border-radius: 40px; font-weight: 700; cursor: pointer; font-size: 15px; transition: 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        /* CONTROL BAR SERIOZE */
+        .control-bar { height: 90px; background: var(--panel-bg); display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding: 0 32px; z-index: 10; shrink: 0; }
+        
+        /* DIZAJNI I SHTETEVE (SERIOZ) */
+        .country-filter-box { display: flex; align-items: center; gap: 10px; background: var(--input-bg); padding: 10px 20px; border-radius: 30px; border: 1px solid var(--border-color); }
+        .country-filter-box label { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .country-filter-box select { background: transparent; border: none; color: white; font-weight: 700; font-size: 14px; outline: none; cursor: pointer; padding-right: 5px; }
+        .country-filter-box select option { background: var(--panel-bg); color: white; }
+
+        .button-group-actions { display: flex; gap: 12px; }
+        .btn { padding: 12px 28px; border: none; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 14px; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn-start { background: #10b981; color: white; }
         .btn-start:hover { background: #059669; }
-        .btn-skip { background: var(--accent-blue); color: white; }
+        .btn-skip { background: var(--accent-blue); color: white; padding: 12px 36px; font-size: 15px; }
         .btn-skip:hover { background: #1d4ed8; }
         .btn-stop { background: var(--danger); color: white; }
         .btn-stop:hover { background: #dc2626; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
-        .btn-report { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); display: none; }
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        /* DIZAJNI I MODALIT (SERIOZ / PREMIUM) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.90); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: var(--panel-bg); border: 1px solid var(--border-color); width: 100%; max-width: 440px; padding: 32px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); text-align: center; position: relative; }
+        /* MODALS & AUTH */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.92); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: var(--panel-bg); border: 1px solid var(--border-color); width: 100%; max-width: 420px; padding: 32px; border-radius: 24px; text-align: center; }
         
-        .auth-tabs { display: flex; background: var(--input-bg); border-radius: 40px; padding: 5px; margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .auth-tab { flex: 1; padding: 12px; border: none; background: transparent; color: #64748b; font-weight: 700; cursor: pointer; border-radius: 30px; transition: 0.2s; font-size: 14px; }
+        .auth-tabs { display: flex; background: var(--input-bg); border-radius: 40px; padding: 4px; margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .auth-tab { flex: 1; padding: 12px; border: none; background: transparent; color: #64748b; font-weight: 700; cursor: pointer; border-radius: 30px; font-size: 14px; }
         .auth-tab.active { background: var(--accent-blue); color: white; }
         
         .field-group { text-align: left; margin-bottom: 16px; }
-        .field-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .field-group input, .field-group select { width: 100%; padding: 12px 18px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; color: white; font-size: 14px; transition: 0.2s; }
-        .field-group input:focus, .field-group select:focus { border-color: var(--accent-blue); outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .field-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+        .field-group input, .field-group select { width: 100%; padding: 12px 16px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; color: white; font-size: 14px; outline: none; }
+        .btn-primary { width: 100%; padding: 14px; background: var(--accent-blue); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; }
         
-        /* PANELI I ADMINIT (MODERNIZUAR) */
-        .admin-panel { background: rgba(20, 25, 40, 0.95); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin: 16px; display: none; }
-        .admin-flex { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 10px; }
-        .admin-flex .field-group { margin-bottom: 0; flex: 1; min-width: 150px; }
-        
-        /* BAN SCREEN & UNBAN PAYMENT */
-        .ban-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #05070f; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; display: none; text-align: center; padding: 24px; }
-        .ban-screen h1 { color: var(--danger); font-size: 32px; margin-bottom: 12px; font-weight: 800; }
-        .ban-card-box { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 24px; border-radius: 20px; width: 100%; max-width: 400px; margin-top: 20px; }
-        
-        .banned-list { margin-top: 15px; list-style: none; max-height: 150px; overflow-y: auto; }
-        .banned-user-item { display: flex; justify-content: space-between; align-items: center; background: #090d1a; padding: 10px 14px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid var(--border-color); }
-        .btn-unban { background: #10b981; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
+        /* BAN SCREEN */
+        .ban-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #03050a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; display: none; text-align: center; padding: 24px; }
+        .ban-card-box { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 24px; border-radius: 20px; width: 100%; max-width: 380px; margin-top: 20px; }
 
-        .btn-primary { width: 100%; padding: 14px; background: var(--accent-blue); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { filter: brightness(1.1); }
-
-        /* 📱 MOBILE RESPONSIVE */
+        /* RESPONSIVE DIZAJNI PËR TELEFON (VERTAL) 📱 */
         @media (max-width: 768px) {
-            .top-header { padding: 0 16px; height: 60px; }
-            .brand-name { font-size: 18px; }
-            .main-app-container { height: calc(100vh - 60px); }
+            .top-header { padding: 0 16px; height: 65px; }
+            .brand-name { font-size: 20px; }
+            .main-app-container { height: calc(100vh - 65px); }
+            
+            /* Ekran Vertikal: Kamera e tjetrit lart, e jotja poshtë */
             .video-grid { flex-direction: column; }
-            .video-wrapper { width: 100%; height: 50%; flex: none; }
-            .control-bar { height: 90px; gap: 10px; padding: 0 16px; }
-            .btn { padding: 12px 20px; font-size: 14px; }
-            .modal-content { padding: 24px; }
+            .video-wrapper { width: 100%; height: 50%; }
+            
+            .control-bar { height: auto; padding: 16px; flex-direction: column; gap: 14px; width: 100%; }
+            .country-filter-box { width: 100%; justify-content: space-between; }
+            .button-group-actions { width: 100%; display: flex; gap: 8px; }
+            .btn { flex: 1; justify-content: center; padding: 14px; font-size: 14px; }
+            .btn-skip { flex: 2; }
         }
     </style>
 </head>
 <body>
 
     <div id="ban-blocker-screen" class="ban-screen">
-        <h1>LLOGARIA JUAJ ËSHTË BLLOKUAR! 🚫</h1>
-        <p id="ban-countdown-text" style="color: #94a3b8; margin-bottom: 20px; font-weight: 600;"></p>
-        
+        <h1 style="color: var(--danger); font-size: 28px;">LLOGARIA JUAJ ËSHTË BLLOKUAR! 🚫</h1>
+        <p id="ban-countdown-text" style="color: #94a3b8; margin: 12px 0; font-weight: 600;"></p>
         <div class="ban-card-box">
-            <h3 style="color: #10b981; font-size: 18px; margin-bottom: 10px;">🔓 Zhblloko Llogarinë Menjëherë</h3>
-            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Paguaj tarifën prej 1.99€ për të hequr bllokimin në sekondë.</p>
-            
-            <div class="field-group">
-                <input type="text" id="ban-card-num" placeholder="Numri i Kartelës" maxlength="16">
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <input type="text" id="ban-card-exp" placeholder="MM/VV" maxlength="5" style="width: 60%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
-                <input type="password" id="ban-card-cvc" placeholder="CVC" maxlength="3" style="width: 40%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
-            </div>
-            <button class="btn-primary" style="background: #10b981; margin-top: 15px;" onclick="processUnbanPayment()">PAGUAJ 1.99€ E ZHBLLOKO</button>
+            <h3 style="color: #10b981; margin-bottom: 12px;">🔓 Zhbllokohu Menjëherë</h3>
+            <div class="field-group"><input type="text" id="ban-card-num" placeholder="Numri i Kartelës (16 shifra)" maxlength="16"></div>
+            <button class="btn-primary" style="background: #10b981;" onclick="processUnbanPayment()">PAGUAJ TANI 1.99€</button>
         </div>
-        <p style="color: #64748b; font-size: 12px; margin-top: 20px; cursor: pointer; text-decoration: underline;" onclick="bypassBanForNewAccount()">Ose krijo llogari të re</p>
+        <p style="color: #64748b; font-size: 13px; margin-top: 20px; cursor: pointer; text-decoration: underline;" onclick="bypassBanForNewAccount()">Krijo llogari të re</p>
     </div>
 
     <div id="vip-payment-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="border-color: var(--vip-gold);">
-            <h3 style="color: var(--vip-gold); font-size: 22px; margin-bottom: 10px;">👑 Porosit Statusin VIP</h3>
-            <p style="font-size: 13px; margin-bottom: 20px; color: #94a3b8;">Emër i artë, Matchmaking pa pritje dhe logo ekskluzive.</p>
-            
-            <div class="field-group">
-                <label>Numri i Kartelës</label>
-                <input type="text" id="card-number" placeholder="4111 2222 3333 4444" maxlength="16" required>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <div class="field-group" style="flex: 2;">
-                    <label>Validimi (MM/VV)</label>
-                    <input type="text" id="card-expiry" placeholder="12/28" maxlength="5" required>
-                </div>
-                <div class="field-group" style="flex: 1;">
-                    <label>CVC</label>
-                    <input type="password" id="card-cvc" placeholder="123" maxlength="3" required>
-                </div>
-            </div>
+            <h3 style="color: var(--vip-gold); font-size: 22px; margin-bottom: 12px;">👑 Porosit Statusin VIP</h3>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">Me statusin VIP fiton distinktivin e artë dhe përparësi në matchmaking.</p>
+            <div class="field-group"><label>Numri i Kartelës</label><input type="text" id="card-number" placeholder="4111 2222 3333 4444" maxlength="16"></div>
             <button class="btn-primary" style="background: var(--vip-gold); color: #000;" onclick="processVipCardPayment()">PAGUAJ 3.99€</button>
-            <button class="btn-primary" style="background: transparent; color: #64748b; margin-top: 5px; border: none;" onclick="closeVipModal()">Anulo</button>
+            <button class="btn-primary" style="background: transparent; color: #64748b; margin-top: 8px;" onclick="closeVipModal()">Anulo</button>
         </div>
     </div>
 
@@ -162,9 +142,8 @@
                 <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Sign-In</button>
                 <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Sign-Up</button>
             </div>
-            <h3 id="auth-welcome-text" style="font-size: 22px; margin-bottom: 15px;">Mirësevini në BiG CHaTT</h3>
             <div id="auth-form-body"></div>
-            <button class="btn-primary" onclick="submitAuthForm()">VAZHDO</button>
+            <button class="btn-primary" style="margin-top: 15px;" onclick="submitAuthForm()">VAZHDO</button>
         </div>
     </div>
 
@@ -175,80 +154,56 @@
         </div>
         <div class="header-actions">
             <button id="vip-buy-btn" class="btn-vip-top" onclick="openVipModal()">👑 BLEJ VIP</button>
-            <div style="position: relative;">
-                <div id="profile-identity" class="user-profile-tag" onclick="toggleDropdown()">Duke u lidhur...</div>
-                <div id="profile-menu-dropdown" class="profile-dropdown">
-                    <div class="dropdown-item" onclick="triggerSignOut()">🚪 Sign Out</div>
-                </div>
+            <div id="profile-identity" class="user-profile-tag" onclick="toggleDropdown()">Duke u lidhur...</div>
+            <div id="profile-menu-dropdown" class="profile-dropdown">
+                <div class="dropdown-item" onclick="triggerSignOut()">Exit Platform</div>
             </div>
         </div>
     </div>
 
     <div class="main-app-container">
         
-        <div id="admin-dashboard" class="admin-panel">
-            <h4 style="color:#ef4444; font-weight:700;">🛡️ Paneli i Kontrollit të Adminit (Florian)</h4>
-            <div class="admin-flex">
-                <div class="field-group">
-                    <label>Përdoruesi</label>
-                    <input type="text" id="ban-target-input" placeholder="Username...">
-                </div>
-                <div class="field-group">
-                    <label>Kohëzgjatja</label>
-                    <select id="ban-duration-select">
-                        <option value="1">1 Orë</option>
-                        <option value="12">12 Orë</option>
-                        <option value="24">24 Orë</option>
-                        <option value="permanent">Përgjithmonë</option>
-                    </select>
-                </div>
-                <button class="btn" style="background:#ef4444; color:white; padding:12px 24px; font-size:14px; border-radius:12px; height:45px;" onclick="executeBan()">APLIKO BAN</button>
-            </div>
-            <ul id="banned-users-list" class="banned-list"></ul>
-        </div>
-
         <div class="video-grid">
             <div class="video-wrapper">
                 <video id="remote-stream-view" autoplay playsinline></video>
                 <div id="stranger-status-text" class="video-label">
-                    <div id="remote-dot" class="video-dot"></div>
-                    I huaji (Stranger)
+                    <div id="remote-dot" class="video-dot"></div> I huaji (Stranger)
                 </div>
             </div>
             <div class="video-wrapper">
                 <video id="local-stream-view" autoplay playsinline muted></video>
-                <div class="video-label">
-                    <div class="video-dot active"></div>
-                    Kamera Jote
-                </div>
+                <div class="video-label"><div class="video-dot active"></div> Kamera Jote</div>
             </div>
         </div>
 
         <div class="control-bar">
-            <button id="start-session-btn" class="btn btn-start">HYR NË KAMERË</button>
-            <button id="skip-session-btn" class="btn btn-skip" disabled>SKIP (TJETRI)</button>
-            <button id="stop-session-btn" class="btn btn-stop" disabled>NDALO</button>
-            <button id="report-user-btn" class="btn btn-report" onclick="sendReport()">Raporto ⚠️</button>
+            <div class="country-filter-box">
+                <label>📍 Filter:</label>
+                <select id="match-country-filter">
+                    <option value="all">🌍 All Countries</option>
+                    <option value="Kosovë">Kosovo</option>
+                    <option value="Shqipëri">Albania</option>
+                    <option value="Gjermani">Germany</option>
+                    <option value="Zvicër">Switzerland</option>
+                </select>
+            </div>
+            <div class="button-group-actions">
+                <button id="start-session-btn" class="btn btn-start">NDIZ KAMERËN</button>
+                <button id="skip-session-btn" class="btn btn-skip" disabled>SKIP (TJETRI)</button>
+                <button id="stop-session-btn" class="btn btn-stop" disabled>NDALO</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const socket = io("https://big-chatt-pro-ffwl.onrender.com");
+        const API_URL = "https://big-chat-2pro.onrender.com";
+        const socket = io(API_URL);
 
         let currentMode = 'login';
         let currentUser = null;
         let localStream = null;
         let peerInstance = null;
         let activeCall = null;
-
-        if(!localStorage.getItem('registered_users')) {
-            localStorage.setItem('registered_users', JSON.stringify([
-                { name: 'Florian', surname: 'Admin', username: 'florian', pass: 'admin123', role: 'admin', city: 'Prishtinë', isVip: true }
-            ]));
-        }
-        if(!localStorage.getItem('advanced_blacklist')) {
-            localStorage.setItem('advanced_blacklist', JSON.stringify([]));
-        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('active_chat_session');
@@ -262,100 +217,61 @@
 
         function checkUserBanStatus() {
             if (!currentUser) return;
-            let blacklist = JSON.parse(localStorage.getItem('advanced_blacklist'));
-            let banFound = blacklist.find(b => b.username === currentUser.username);
-
-            if (banFound) {
-                if (banFound.expires === 'permanent') {
-                    document.getElementById('ban-countdown-text').innerText = "Arsyeja: Jeni bllokuar PËRGJITHMONË.";
-                    document.getElementById('ban-blocker-screen').style.display = 'flex';
-                    return;
-                } else {
-                    let timeLeft = banFound.expires - Date.now();
-                    if (timeLeft > 0) {
-                        let hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
-                        document.getElementById('ban-countdown-text').innerText = `Mbeten edhe: ${hoursLeft} orë bllokim.`;
-                        document.getElementById('ban-blocker-screen').style.display = 'flex';
-                        return;
-                    } else {
-                        // Ban ka kaluar automatikisht
-                        blacklist = blacklist.filter(b => b.username !== currentUser.username);
-                        localStorage.setItem('advanced_blacklist', JSON.stringify(blacklist));
-                    }
-                }
+            if (currentUser.isBanned) {
+                document.getElementById('ban-countdown-text').innerText = currentUser.banExpires === 'permanent' ? "Bllokim Përgjithmonë!" : "Përkohësisht i bllokuar.";
+                document.getElementById('ban-blocker-screen').style.display = 'flex';
+                return;
             }
             applySuccessfulAuth();
-        }
-
-        function toggleDropdown() {
-            const dropdown = document.getElementById('profile-menu-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        window.addEventListener('click', function(e) {
-            if (!document.getElementById('profile-identity').contains(e.target)) {
-                document.getElementById('profile-menu-dropdown').style.display = 'none';
-            }
-        });
-
-        function triggerSignOut() {
-            if (localStream) localStream.getTracks().forEach(track => track.stop());
-            localStorage.removeItem('active_chat_session');
-            currentUser = null;
-            location.reload();
         }
 
         function switchAuthTab(mode) {
             currentMode = mode;
             document.getElementById('tab-login').classList.toggle('active', mode === 'login');
             document.getElementById('tab-register').classList.toggle('active', mode === 'register');
-            renderAuthForm();
-        }
-
-        function renderAuthForm() {
+            
             const container = document.getElementById('auth-form-body');
-            if(currentMode === 'login') {
+            if(mode === 'login') {
                 container.innerHTML = `
-                    <div class="field-group"><label>Username</label><input type="text" id="auth-user" placeholder="Shkruaj username..." required></div>
-                    <div class="field-group"><label>Fjalëkalimi</label><input type="password" id="auth-pass" placeholder="••••••••" required></div>
+                    <div class="field-group"><label>Username</label><input type="text" id="auth-user" placeholder="Username..."></div>
+                    <div class="field-group"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••"></div>
                 `;
             } else {
                 container.innerHTML = `
-                    <div class="field-group"><label>Emri</label><input type="text" id="reg-name" placeholder="Emri yt" required></div>
-                    <div class="field-group"><label>Mbiemri</label><input type="text" id="reg-surname" placeholder="Mbiemri yt" required></div>
-                    <div class="field-group"><label>Qyteti (City)</label><input type="text" id="reg-city" placeholder="Psh. Prishtinë" required></div>
-                    <div class="field-group"><label>Username i ri</label><input type="text" id="auth-user" placeholder="Zgjidh një username..." required></div>
-                    <div class="field-group"><label>Fjalëkalimi i ri</label><input type="password" id="auth-pass" placeholder="••••••••" required></div>
+                    <div class="field-group"><label>Emri yt</label><input type="text" id="reg-name" placeholder="Shkruaj emrin"></div>
+                    <div class="field-group"><label>Shteti</label><select id="reg-country"><option value="Kosovë">Kosovo</option><option value="Shqipëri">Albania</option></select></div>
+                    <div class="field-group"><label>Zgjidh Username</label><input type="text" id="auth-user" placeholder="Username i ri..."></div>
+                    <div class="field-group"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••"></div>
                 `;
             }
         }
 
-        function submitAuthForm() {
-            const usernameInput = document.getElementById('auth-user').value.trim().toLowerCase();
+        async function submitAuthForm() {
+            const usernameInput = document.getElementById('auth-user').value.trim();
             const passwordInput = document.getElementById('auth-pass').value;
-            let db = JSON.parse(localStorage.getItem('registered_users'));
+            if(!usernameInput || !passwordInput) return alert("Ju lutem plotësoni të gjitha fushat!");
 
-            if(!usernameInput || !passwordInput) { alert("Ju lutem plotësoni fushat!"); return; }
+            let endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+            let bodyData = { username: usernameInput, password: passwordInput };
 
-            if(currentMode === 'login') {
-                let userMatch = db.find(u => u.username === usernameInput && u.pass === passwordInput);
-                if(userMatch) { currentUser = userMatch; } else { alert("Të dhënat janë të gabuara!"); return; }
-            } else {
-                const nameInput = document.getElementById('reg-name').value.trim();
-                const surnameInput = document.getElementById('reg-surname').value.trim();
-                const cityInput = document.getElementById('reg-city').value.trim();
-
-                if(!nameInput || !surnameInput || !cityInput) { alert("Të gjitha fushat duhen!"); return; }
-                if(db.some(u => u.username === usernameInput)) { alert("Ky username është i zënë!"); return; }
-
-                let newAcc = { name: nameInput, surname: surnameInput, username: usernameInput, pass: passwordInput, role: 'user', city: cityInput, isVip: false };
-                db.push(newAcc);
-                localStorage.setItem('registered_users', JSON.stringify(db));
-                currentUser = newAcc;
+            if(currentMode === 'register') {
+                bodyData.name = document.getElementById('reg-name').value.trim();
+                bodyData.country = document.getElementById('reg-country').value;
             }
 
-            localStorage.setItem('active_chat_session', JSON.stringify(currentUser));
-            checkUserBanStatus();
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyData)
+                });
+                const data = await res.json();
+                if(data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('active_chat_session', JSON.stringify(currentUser));
+                    checkUserBanStatus();
+                } else { alert(data.message); }
+            } catch(e) { alert("Serveri nuk po përgjigjet!"); }
         }
 
         function applySuccessfulAuth() {
@@ -368,157 +284,43 @@
                 profileTag.innerHTML = `👑 ${currentUser.username} ▾`;
                 document.getElementById('vip-buy-btn').style.display = 'none';
             } else {
-                profileTag.classList.remove('vip-user');
                 profileTag.innerHTML = `${currentUser.username} ▾`;
-                document.getElementById('vip-buy-btn').style.display = 'block';
             }
-
-            if(currentUser.role === 'admin') {
-                document.getElementById('admin-dashboard').style.display = 'block';
-                profileTag.innerHTML = `🛡️ ${currentUser.username} (Admin) ▾`;
-            }
-            refreshBannedUI();
             startRealtimeEngine();
-        }
-
-        function openVipModal() { document.getElementById('vip-payment-modal').style.display = 'flex'; }
-        function closeVipModal() { document.getElementById('vip-payment-modal').style.display = 'none'; }
-
-        function processVipCardPayment() {
-            const card = document.getElementById('card-number').value.trim();
-            const exp = document.getElementById('card-expiry').value.trim();
-            const cvc = document.getElementById('card-cvc').value.trim();
-
-            if(card.length < 14 || exp.length < 5 || cvc.length < 3) { alert("Kartela jo valide!"); return; }
-
-            fetch("https://big-chatt-pro-ffwl.onrender.com/api/payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: currentUser.username, cardNumber: card, amount: "3.99€" })
-            }).catch(e => {});
-
-            alert("Transaksioni po verifikohet... 💳");
-            setTimeout(() => {
-                currentUser.isVip = true;
-                localStorage.setItem('active_chat_session', JSON.stringify(currentUser));
-                let db = JSON.parse(localStorage.getItem('registered_users'));
-                let idx = db.findIndex(u => u.username === currentUser.username);
-                if(idx !== -1) { db[idx].isVip = true; localStorage.setItem('registered_users', JSON.stringify(db)); }
-                alert("Statusi VIP u aktivizua! 👑");
-                closeVipModal();
-                applySuccessfulAuth();
-            }, 1500);
-        }
-
-        // SISTEMI SAKTI I PAGESËS PËR ZHBLLOKIM RENDIMENTI (1.99 EURO)
-        function processUnbanPayment() {
-            const card = document.getElementById('ban-card-num').value.trim();
-            const exp = document.getElementById('ban-card-exp').value.trim();
-            const cvc = document.getElementById('ban-card-cvc').value.trim();
-
-            if(card.length < 14 || exp.length < 5 || cvc.length < 3) { alert("Ju lutem plotësoni saktë kartelën!"); return; }
-
-            // Dërgohet direkt te serveri yt në Render
-            fetch("https://big-chatt-pro-ffwl.onrender.com/api/payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: currentUser.username, cardNumber: card, action: "unban_payment", amount: "1.99€" })
-            }).catch(e => {});
-
-            alert("Pagesa prej 1.99€ po verifikohet nga banka... Llogaria po zhbllokohet! 🔓");
-            
-            setTimeout(() => {
-                let blacklist = JSON.parse(localStorage.getItem('advanced_blacklist'));
-                blacklist = blacklist.filter(b => b.username !== currentUser.username);
-                localStorage.setItem('advanced_blacklist', JSON.stringify(blacklist));
-                
-                alert("Pagesa u pranua! Je zhbllokuar me sukses! 🎉");
-                document.getElementById('ban-blocker-screen').style.display = 'none';
-                applySuccessfulAuth();
-            }, 2000);
-        }
-
-        // FUNKSIONET E BAN-IT NGA ADMINI (FLORIAN)
-        function executeBan() {
-            const targetName = document.getElementById('ban-target-input').value.trim().toLowerCase();
-            const duration = document.getElementById('ban-duration-select').value;
-            if(!targetName) return;
-
-            let expiresAt = 'permanent';
-            if (duration !== 'permanent') {
-                expiresAt = Date.now() + (parseInt(duration) * 60 * 60 * 1000);
-            }
-
-            let blacklist = JSON.parse(localStorage.getItem('advanced_blacklist'));
-            blacklist = blacklist.filter(b => b.username !== targetName); // Heq nëse ka pasur ban të vjetër
-            blacklist.push({ username: targetName, expires: expiresAt });
-            localStorage.setItem('advanced_blacklist', JSON.stringify(blacklist));
-
-            socket.emit('admin-ban-user', { target: targetName });
-            document.getElementById('ban-target-input').value = '';
-            alert(`Përdoruesi ${targetName} u bllokua me sukses!`);
-            refreshBannedUI();
-        }
-
-        function removeBan(user) {
-            let blacklist = JSON.parse(localStorage.getItem('advanced_blacklist'));
-            blacklist = blacklist.filter(b => b.username !== user);
-            localStorage.setItem('advanced_blacklist', JSON.stringify(blacklist));
-            refreshBannedUI();
-        }
-
-        function refreshBannedUI() {
-            const listContainer = document.getElementById('banned-users-list');
-            if(!listContainer) return;
-            listContainer.innerHTML = '';
-            let blacklist = JSON.parse(localStorage.getItem('advanced_blacklist'));
-            blacklist.forEach(item => {
-                let status = item.expires === 'permanent' ? 'Përgjithmonë' : 'Me Kohë';
-                listContainer.innerHTML += `
-                    <li class="banned-user-item">
-                        <span>🚫 <b>${item.username}</b> (${status})</span>
-                        <button class="btn-unban" onclick="removeBan('${item.username}')">Liro</button>
-                    </li>`;
-            });
         }
 
         function startRealtimeEngine() {
             if (peerInstance) return;
-            const myPeerId = 'bigchatt-p-' + currentUser.username + '-' + Math.floor(Math.random() * 1000);
-            peerInstance = new Peer(myPeerId, { debug: 1 });
+            const myPeerId = 'bg-' + currentUser.username + '-' + Math.floor(Math.random() * 9999);
+            peerInstance = new Peer(myPeerId);
 
             peerInstance.on('open', (id) => {
-                socket.emit('user-online', { username: currentUser.username, peerId: id, city: currentUser.city, isVip: currentUser.isVip });
+                socket.emit('user-online', { username: currentUser.username, peerId: id, country: currentUser.country, isVip: currentUser.isVip });
             });
 
             peerInstance.on('call', (incomingCall) => {
                 activeCall = incomingCall;
-                if(localStream) {
-                    incomingCall.answer(localStream);
-                    incomingCall.on('stream', (strangerStream) => {
-                        document.getElementById('remote-stream-view').srcObject = strangerStream;
-                        document.getElementById('remote-dot').classList.add('active');
-                        document.getElementById('report-user-btn').style.display = 'block';
-                    });
-                }
+                incomingCall.answer(localStream);
+                incomingCall.on('stream', (strangerStream) => {
+                    document.getElementById('remote-stream-view').srcObject = strangerStream;
+                    document.getElementById('remote-dot').classList.add('active');
+                });
             });
 
             socket.on('update-counter', (count) => {
-                document.getElementById('live-users-counter').innerHTML = `<div class="live-pulse"></div> ${count} Online`;
+                document.getElementById('live-users-counter').innerText = `${count} Online`;
             });
 
             socket.on('match-found', (opponent) => {
                 if (activeCall) activeCall.close();
-                document.getElementById('stranger-status-text').innerText = `${opponent.username} (${opponent.city})`;
-                if (opponent.isVip) { document.getElementById('stranger-status-text').innerHTML = `👑 ${opponent.username} (VIP) 🟢`; }
-
+                document.getElementById('stranger-status-text').innerText = opponent.isVip ? `👑 ${opponent.username} (VIP)` : `${opponent.username} (${opponent.country})`;
+                
                 let outCall = peerInstance.call(opponent.peerId, localStream);
                 if(outCall) {
                     activeCall = outCall;
                     outCall.on('stream', (strangerStream) => {
                         document.getElementById('remote-stream-view').srcObject = strangerStream;
                         document.getElementById('remote-dot').classList.add('active');
-                        document.getElementById('report-user-btn').style.display = 'block';
                     });
                 }
             });
@@ -527,57 +329,83 @@
                 if (activeCall) activeCall.close();
                 document.getElementById('remote-stream-view').srcObject = null;
                 document.getElementById('remote-dot').classList.remove('active');
-                document.getElementById('report-user-btn').style.display = 'none';
-                document.getElementById('stranger-status-text').innerText = "I huaji bëri Skip. Shtyp 'SKIP'...";
-            });
-
-            socket.on('banned-by-admin', () => {
-                if (localStream) localStream.getTracks().forEach(track => track.stop());
-                location.reload();
+                document.getElementById('stranger-status-text').innerText = "I huaji doli. Kliko SKIP...";
             });
         }
 
-        const startBtn = document.getElementById('start-session-btn');
-        const skipBtn = document.getElementById('skip-session-btn');
-        const stopBtn = document.getElementById('stop-session-btn');
-
-        startBtn.addEventListener('click', async () => {
+        document.getElementById('start-session-btn').addEventListener('click', async () => {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                    audio: true 
+                });
                 document.getElementById('local-stream-view').srcObject = localStream;
-                startBtn.disabled = true;
-                skipBtn.disabled = false;
-                stopBtn.disabled = false;
-                document.getElementById('stranger-status-text').innerText = "Shtyp 'SKIP' për të kërkuar njerëz...";
-            } catch (err) { alert("Duhet të pranoni qasjen në kamerë!"); }
+                document.getElementById('start-session-btn').disabled = true;
+                document.getElementById('skip-session-btn').disabled = false;
+                document.getElementById('stop-session-btn').disabled = false;
+            } catch (err) { alert("Ju lutem lejoni qasjen në kamerë dhe mikrofon!"); }
         });
 
-        skipBtn.addEventListener('click', () => {
-            document.getElementById('stranger-status-text').innerText = "Duke kërkuar një lidhje...";
+        document.getElementById('skip-session-btn').addEventListener('click', () => {
+            document.getElementById('remote-stream-view').srcObject = null;
             document.getElementById('remote-dot').classList.remove('active');
-            document.getElementById('remote-stream-view').srcObject = null;
-            if (activeCall) activeCall.close();
-            socket.emit('request-match');
+            document.getElementById('stranger-status-text').innerText = "Duke kërkuar...";
+            const selectedCountry = document.getElementById('match-country-filter').value;
+            socket.emit('request-match', { filterCountry: selectedCountry });
         });
 
-        stopBtn.addEventListener('click', () => {
+        document.getElementById('stop-session-btn').addEventListener('click', () => {
             if (localStream) localStream.getTracks().forEach(track => track.stop());
-            document.getElementById('local-stream-view').srcObject = null;
-            document.getElementById('remote-stream-view').srcObject = null;
-            localStream = null;
-            if (activeCall) activeCall.close();
-            socket.emit('leave-match');
-            startBtn.disabled = false;
-            skipBtn.disabled = true;
-            stopBtn.disabled = true;
+            location.reload();
         });
 
-        function bypassBanForNewAccount() {
-            document.getElementById('ban-blocker-screen').style.display = 'none';
-            document.getElementById('auth-modal').style.display = 'flex';
-            switchAuthTab('register');
+        function toggleDropdown() {
+            const d = document.getElementById('profile-menu-dropdown');
+            d.style.display = d.style.display === 'block' ? 'none' : 'block';
         }
-        function sendReport() { alert("U raportua!"); }
+
+        function triggerSignOut() {
+            localStorage.removeItem('active_chat_session');
+            location.reload();
+        }
+
+        async function processVipCardPayment() {
+            if(document.getElementById('card-number').value.length < 14) return alert("Kartela jo valide!");
+            try {
+                const response = await fetch(`${API_URL}/api/payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, action: 'vip' })
+                });
+                const data = await response.json();
+                if(data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('active_chat_session', JSON.stringify(currentUser));
+                    alert("Urime! Tani jeni VIP 👑");
+                    location.reload();
+                }
+            } catch(e) { alert("Pagesa dështoi!"); }
+        }
+
+        async function processUnbanPayment() {
+            if(document.getElementById('ban-card-num').value.length < 14) return alert("Kartela jo valide!");
+            try {
+                const response = await fetch(`${API_URL}/api/payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, action: 'unban_payment' })
+                });
+                const data = await response.json();
+                if(data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('active_chat_session', JSON.stringify(currentUser));
+                    alert("Llogaria u zhbllokua! 🎉");
+                    location.reload();
+                }
+            } catch(e) { alert("Pagesa dështoi!"); }
+        }
+
+        function bypassBanForNewAccount() { triggerSignOut(); }
     </script>
 </body>
 </html>
